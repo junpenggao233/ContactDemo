@@ -1,0 +1,9 @@
+[project]
+name = "newton-ant"
+version = "0.1.0"
+description = "Ant locomotion experiments with Newton Physics"
+requires-python = ">=3.10"
+dependencies = [
+    "newton>=1.0.0",
+    "torch>=2.0",
+]

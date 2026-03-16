@@ -1,0 +1,1 @@
+# BarrierContact package

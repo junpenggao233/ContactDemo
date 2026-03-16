@@ -22,7 +22,7 @@ Euler) integration. Allows small penetration proportional to $1/k_e$ but is simp
 fast.
 
 - Rigid body with quaternion rotations
-- Contact model matching [Newton physics engine]() exactly
+- Contact model matching [Newton physics engine](https://github.com/newton-physics/newton/tree/main/newton/_src/solvers/semi_implicit) exactly
 - Huber-norm smoothed Coulomb friction
 
 ## Quick comparison

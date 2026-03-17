@@ -6,4 +6,5 @@ requires-python = ">=3.10"
 dependencies = [
     "newton>=1.0.0",
     "torch>=2.0",
+    "usd-core",
 ]

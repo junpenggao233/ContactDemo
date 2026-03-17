@@ -11,4 +11,6 @@ build/
 *.gif
 *.mp4
 *.png
+*.usd
 results/
+checkpoints/

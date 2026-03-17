@@ -51,7 +51,7 @@ class AntEnv:
             limit_kd=1.0e1,
         )
 
-        # Load the dflex ant.xml (same MJCF as rewarped, density=1000 baked in)
+        # Load the dflex ant.xml (identical to rewarped, density=5.0 in XML defaults)
         asset_dir = os.path.join(os.path.dirname(__file__), "assets")
         ant.add_mjcf(
             os.path.join(asset_dir, "ant.xml"),
@@ -72,6 +72,47 @@ class AntEnv:
             device=self.device,
             requires_grad=self.requires_grad,
         )
+
+        # Fix body masses to match rewarped's effective densities.
+        # Rewarped's MJCF parser has a bug: capsule shapes use the function parameter
+        # density=1000.0 instead of the XML geom_density=5.0. Newton's parser is correct
+        # (all shapes get density=5.0), so we post-correct to match rewarped's behavior:
+        #   torso (body 0): sphere@5.0 + 4 aux capsules@1000.0
+        #   bodies 1-8: pure capsules@1000.0 (scale by 200)
+        import math
+
+        num_bodies = 9  # per env
+        density_scale = 1000.0 / 5.0  # capsule density correction
+        sphere_vol = (4.0 / 3.0) * math.pi * 0.25**3
+        sphere_mass_5 = sphere_vol * 5.0
+
+        body_mass = wp.to_torch(self.model.body_mass)
+        body_inv_mass = wp.to_torch(self.model.body_inv_mass)
+        body_inertia = wp.to_torch(self.model.body_inertia)
+        body_inv_inertia = wp.to_torch(self.model.body_inv_inertia)
+
+        for env_id in range(self.num_envs):
+            base = env_id * num_bodies
+            # Torso (body 0): sphere stays at density=5, capsules scale to 1000
+            torso_mass_5 = body_mass[base].item()
+            capsule_mass_5 = torso_mass_5 - sphere_mass_5
+            new_torso_mass = sphere_mass_5 + capsule_mass_5 * density_scale
+            torso_scale = new_torso_mass / torso_mass_5
+            body_mass[base] = new_torso_mass
+            body_inv_mass[base] = 1.0 / new_torso_mass
+            body_inertia[base] *= torso_scale
+            body_inv_inertia[base] *= 1.0 / torso_scale
+            # Bodies 1-8 (pure capsules): scale by density_scale
+            for b in range(1, num_bodies):
+                body_mass[base + b] *= density_scale
+                body_inv_mass[base + b] /= density_scale
+                body_inertia[base + b] *= density_scale
+                body_inv_inertia[base + b] /= density_scale
+
+        self.model.body_mass.assign(wp.from_torch(body_mass))
+        self.model.body_inv_mass.assign(wp.from_torch(body_inv_mass))
+        self.model.body_inertia.assign(wp.from_torch(body_inertia))
+        self.model.body_inv_inertia.assign(wp.from_torch(body_inv_inertia))
 
         # Fix joint limit parameters: Newton's MJCF parser derives limit_ke=2500, limit_kd=100
         # from MuJoCo's default solref=(0.02, 1.0), but rewarped uses limit_ke=1000, limit_kd=10.

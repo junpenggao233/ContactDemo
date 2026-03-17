@@ -3,6 +3,7 @@
 import argparse
 import numpy as np
 import torch
+import warp as wp
 from ant_env import AntEnv
 from run_ppo import ActorCritic, RunningMeanStd
 
@@ -86,7 +87,6 @@ def main():
     completed = []
 
     # Track world position for displacement verification
-    import warp as wp
     joint_q = wp.to_torch(env.state_0.joint_q).view(args.num_envs, -1)
     start_pos = joint_q[:, 0:3].clone()
 

@@ -6,7 +6,7 @@
   </custom>
   <default>
     <joint armature="0.001" damping="1" limited="true"/>
-    <geom conaffinity="0" condim="3" density="1000.0" friction="1.5 0.1 0.1" margin="0.01" rgba="0.97 0.38 0.06 1"/>
+    <geom conaffinity="0" condim="3" density="5.0" friction="1.5 0.1 0.1" margin="0.01" rgba="0.97 0.38 0.06 1"/>
   </default>
   <worldbody>
     <body name="torso" pos="0 0 0.75">

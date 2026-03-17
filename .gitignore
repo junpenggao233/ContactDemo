@@ -13,4 +13,4 @@ build/
 *.png
 *.usd
 results/
-checkpoints/
+checkpoints/ppo_*.pt
